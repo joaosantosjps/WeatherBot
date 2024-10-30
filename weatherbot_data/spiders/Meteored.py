@@ -20,23 +20,24 @@ class MeteoredSpider(scrapy.Spider):
         max_temps = block.xpath('//span[@class="max changeUnitT"]/text()').extract()
         min_temps = block.xpath('//span[@class="min changeUnitT"]/text()').extract()
         wind_speeds = block.xpath('//span[@class="changeUnitW"]/text()').extract()
+        temps = block.xpath('//span[@class="prediccion col"]/span/img[@class="simbW"]/@alt').extract()
 
         precipitation_path = block.xpath('//span[@class="prediccion col"]/span[@class="precip col"]')
         rain_probabilities = precipitation_path.xpath('span[@class="txt-strng probabilidad center"]/text()').extract()
         rain_amounts = precipitation_path.xpath('span[@class="changeUnitR"]/text()').extract()
 
-        processed_data = self.processing(days, max_temps, min_temps, wind_speeds, rain_probabilities, rain_amounts)
-        
+        processed_data = self.processing(days, max_temps, min_temps, wind_speeds, temps, rain_probabilities, rain_amounts)
+
         yield WeatherbotDataItem(processed_data)
 
-    def processing(self, days, max_temps, min_temps, wind_speeds, rain_probabilities, rain_amounts):
+    def processing(self, days, max_temps, min_temps, wind_speeds, temps, rain_probabilities, rain_amounts):
         processed = {}
 
-        processed["days"] = str([string.replace(".", "") for string in days ])
+        processed["days"] = [string.replace(".", "") for string in days]
 
         processed["max_temps"] = [int(num.replace("°", "")) for num in max_temps]
         
-        processed["min_temps"] = ([int(num.replace("°", "")) for num in min_temps])
+        processed["min_temps"] = [int(num.replace("°", "")) for num in min_temps]
     
         cleaned_speeds = [int(speed.strip()) for speed in wind_speeds if speed.strip().isdigit()]
         processed["wind_speeds"] = [[cleaned_speeds[i], cleaned_speeds[i+1]] for i in range(0, len(cleaned_speeds) - 1, 2)][:7]
@@ -45,4 +46,5 @@ class MeteoredSpider(scrapy.Spider):
     
         processed["rain_amounts"] = [float(num.replace("mm", "")) for num in rain_amounts]     
 
+        processed["temps"] = temps
         return processed
