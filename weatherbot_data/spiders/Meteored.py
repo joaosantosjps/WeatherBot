@@ -6,7 +6,6 @@ class MeteoredSpider(scrapy.Spider):
     domain = "https://www.tempo.pt"
     city = "moimenta-da-beira"
     
-
     def start_requests(self):
         yield scrapy.Request(
             self.domain + f"/{self.city}.htm",

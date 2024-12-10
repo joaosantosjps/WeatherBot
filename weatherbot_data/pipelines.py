@@ -12,8 +12,6 @@ class WeatherbotDataPipeline:
         del item["rain_probabilities"]
          
         self.process_data(item, rain_amounts, rain_probabilities)
-
-        return item
     
     def process_data(self,item, rain_amounts, rain_probabilities):
 
@@ -30,15 +28,31 @@ class WeatherbotDataPipeline:
 
                     self.data_ordered.append(rain_prob)
                     self.data_ordered.append(rain_mm)
-            self.insert_data(self.data_ordered)
+            
+            self.transform_dict(self.data_ordered)
 
-        return item
+    def transform_dict(self, values):
+        record = {
+            "date": values[0],
+            "temp_max": values[1],
+            "temp_min": values[2],
+            "temp_range": values[3],
+            "condition": values[4]
+        }
+
+        if len(values) > 5:
+            record["rain_probability"] = values[5]
+        if len(values) > 6:
+            record["rain_quantity"] = values[6]
+
+        self. insert_data(record)
 
         
     def insert_data(self, item):
+        print(item)
         connection = MongodbDatabase()
         collection = connection.collection_create()
 
-        """collection.insert_one(dict(item))
+        collection.insert_one(dict(item))
 
-        return item"""
+        return item
